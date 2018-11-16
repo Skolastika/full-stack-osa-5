@@ -12,15 +12,30 @@ class Blog extends React.Component {
 
   increaseLikes = () => {
     const blog = this.props.blog
+
     const updatedBlog = {
       title: blog.title,
       author: blog.author,
       url: blog.url,
-      likes: blog.likes + 1,
-      user: blog.user._id.toString()
+      likes: blog.likes + 1
+    }
+
+    if (blog.user !== undefined) {
+      updatedBlog.user = blog.user._id.toString()
     }
 
     blogService.update(blog._id, updatedBlog)
+    this.props.onUpdateBlog(updatedBlog)
+  }
+
+  removeBlog = async () => {
+    try {
+      await blogService.remove(this.props.blog._id)
+      this.props.onRemoveBlog()
+
+    } catch (exception) {
+      console.log(exception)
+    }
   }
 
   toggleFullView = () => {
@@ -42,6 +57,13 @@ class Blog extends React.Component {
       marginBottom: 5
     }
 
+    const RemoveButton = ({blog, user}) => {
+      if (!blog.user || blog.user._id === user.id) {
+        return <button onClick={this.removeBlog}>Remove</button>
+      }
+      return null
+    }
+
     return (
       <div className='blog' style={ blogStyle }>
         <div className='title' onClick={ this.toggleFullView }>{ blog.title } by { blog.author }</div>
@@ -50,14 +72,18 @@ class Blog extends React.Component {
           <div>{ blog.likes }
               <button onClick={ this.increaseLikes }>Like</button></div>
           <div>added by { userName }</div>
+          <RemoveButton blog={blog} user={this.props.user} />
         </div>
       </div>
     )
   }
 }
 
-Blog.propTypes ={
-  blog: PropTypes.object.isRequired
+Blog.propTypes = {
+  blog: PropTypes.object.isRequired,
+  user: PropTypes.object.isRequired,
+  onUpdateBlog: PropTypes.func.isRequired,
+  onRemoveBlog: PropTypes.func.isRequired
 }
 
 export default Blog

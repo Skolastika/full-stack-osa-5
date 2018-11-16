@@ -61,27 +61,29 @@ class App extends React.Component {
     this.setState({ [event.target.name]: event.target.value })
   }
 
-  handleBlogformChange = (event) => {
-    if (event.target.name === 'title') {
-      this.setState({ newTitle: event.target.value })
-    } else if (event.target.name === 'author') {
-      this.setState({ newAuthor: event.target.value })
-    } else if (event.target.name === 'url') {
-      this.setState({ newUrl: event.target.value })
-    }
-  }
-
-  addBlog = (newBlog) => {
-    
-
-    blogService.getAll().then(blogs => {
-      this.setState({ blogs,
-        message: `A new blog '${newBlog.title}'` })
+  onAddBlog = (newBlog) => {
+    if (newBlog) {
+      blogService.getAll().then(blogs => {
+        this.setState({ blogs,
+          message: `A new blog '${newBlog.title}' was added.` })
+        setTimeout(() => {
+          this.setState({message: null})
+        }, 5000)
+      })
+    } else {
+      this.setState({ message: `Couldn't add blog.` })
       setTimeout(() => {
         this.setState({message: null})
       }, 5000)
+    }
+  }
+
+  updateBlogs = () => {
+    blogService.getAll().then(blogs => {
+      this.setState({ blogs })
     })
   }
+
 
 
   render() {
@@ -101,27 +103,6 @@ class App extends React.Component {
               handleSubmit={this.login}
             />
           </Togglable>
-          <form onSubmit={this.login}>
-            <div>
-              username:
-              <input
-                type="text"
-                name="username"
-                value={this.state.username}
-                onChange={this.handleLoginFieldChange}
-              />
-            </div>
-            <div>
-              password:
-              <input
-                type="password"
-                name="password"
-                value={this.state.password}
-                onChange={this.handleLoginFieldChange}
-              />
-            </div>
-            <button type="submit">Log in</button>
-          </form>
         </div>
       )
     }
@@ -132,9 +113,13 @@ class App extends React.Component {
         <Notification message={this.state.message} />
         <p>{this.state.user.name} logged in. <button onClick={this.logout}>Log out</button></p>
         <h3>Create new</h3>
-        <Blogform onAddBlog={this.addBlog} />
+        <Blogform onAddBlog={this.onAddBlog} />
         {this.state.blogs.map(blog =>
-          <Blog key={blog._id} blog={blog} />
+          <Blog key={blog._id}
+                blog={blog}
+                user={this.state.user}
+                onUpdateBlog={this.updateBlogs}
+                onRemoveBlog={this.updateBlogs} />
         )}
       </div>
     )
